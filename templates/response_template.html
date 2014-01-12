@@ -1,0 +1,24 @@
+	<div class="credentials">
+		<h1>Your Twitter Tokens</h1>
+		<div class="admonition">(Be sure to save this data someplace.)</div>
+		<div class="cred">
+			<div class="label">Access Token:</div>
+			<div class="data">%%ACCESS_TOKEN%%</div>
+		</div>
+		<div class="cred">
+			<div class="label">Access Token Secret:</div>
+			<div class="data">%%ACCESS_TOKEN_SECRET%%</div>
+		</div>
+		<div class="instruction">Press Ctrl-C (⌘-C on Mac) to copy these to your clipboard.</div>
+	</div>
+	<div id="clipboard-container">
+		<textarea id="clipboard">access_token = "%%ACCESS_TOKEN%%"
+access_token_secret = "%%ACCESS_TOKEN_SECRET%%"
+</textarea>
+	</div>
+	<script type="text/javascript">
+		window.onload=function()
+		{
+			document.getElementById("clipboard").select();
+		}
+	</script>
