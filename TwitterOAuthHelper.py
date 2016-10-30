@@ -65,7 +65,7 @@ class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 base_url='https://api.twitter.com/1.1/'
             )
             params = {
-                "oauth_callback" : "http://%s:%i/token" % (HOSTNAME, LISTEN_PORT) 
+                "oauth_callback" : "http://%s:%i/token" % (HOSTNAME, LISTEN_PORT)
             }
             token_response = service.get_raw_request_token(params=params)
             token_data = utils.parse_utf8_qsl(token_response.content)
@@ -143,6 +143,3 @@ except Exception, e:
     keepServing = False
 finally:
     httpd.server_close()
-
-
-

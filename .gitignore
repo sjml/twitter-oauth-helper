@@ -3,3 +3,4 @@ syntax: glob
 .DS_Store
 *.py[cod]
 credentials.ini
+env/*
