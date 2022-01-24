@@ -4,8 +4,8 @@
 import sys
 import os
 import webbrowser
-import BaseHTTPServer
-import urlparse
+import http.server
+import urllib.parse
 
 from rauth import OAuth1Service, utils
 
@@ -21,21 +21,21 @@ inputTemplate = ""
 errorTemplate = ""
 
 with open("templates/header.html", "r") as templateFile:
-    header = templateFile.read().decode("utf8")
+    header = templateFile.read()
 with open("templates/footer.html", "r") as templateFile:
-    footer = templateFile.read().decode("utf8")
+    footer = templateFile.read()
 with open("templates/response_template.html", "r") as templateFile:
-    responseTemplate = templateFile.read().decode("utf8")
+    responseTemplate = templateFile.read()
 with open("templates/input_template.html", "r") as templateFile:
-    inputTemplate = templateFile.read().decode("utf8")
+    inputTemplate = templateFile.read()
 with open("templates/error_template.html", "r") as templateFile:
-    errorTemplate = templateFile.read().decode("utf8")
+    errorTemplate = templateFile.read()
 
 service = None
 request_token = None
 request_token_secret = None
 
-class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class OAuthReturnHandler(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -48,7 +48,7 @@ class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.path == "/submit":
             length = int(self.headers['Content-Length'])
-            post_data = urlparse.parse_qs(self.rfile.read(length).decode('utf-8'))
+            post_data = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8'))
             if "key" not in post_data or "secret" not in post_data:
                 self.send_response(301)
                 self.send_header("Location", "/error")
@@ -89,13 +89,13 @@ class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             output = "%s%s%s" % (header, inputTemplate, footer)
-            self.wfile.write(output)
+            self.wfile.write(output.encode("utf-8"))
         elif self.path == "/error":
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             output = "%s%s%s" % (header, errorTemplate, footer)
-            self.wfile.write(output)
+            self.wfile.write(output.encode("utf-8"))
         elif self.path.startswith("/token"):
             if (service == None):
                 self.send_response(301)
@@ -103,7 +103,7 @@ class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.end_headers()
                 return
 
-            get_data = urlparse.parse_qs(self.path[len("/token?"):])
+            get_data = urllib.parse.parse_qs(self.path[len("/token?"):])
             oauth_token = get_data["oauth_token"][0]
             oauth_verifier = get_data["oauth_verifier"][0]
             creds = {
@@ -120,15 +120,15 @@ class OAuthReturnHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             output += header
             output += responseTemplate
             output += footer
-            output = output.replace(u"%%ACCESS_TOKEN%%", sess.access_token.encode("utf8"))
-            output = output.replace(u"%%ACCESS_TOKEN_SECRET%%", sess.access_token_secret.encode("utf8"))
+            output = output.replace(u"%%ACCESS_TOKEN%%", sess.access_token)
+            output = output.replace(u"%%ACCESS_TOKEN_SECRET%%", sess.access_token_secret)
             self.wfile.write(output.encode("utf8"))
             keepServing = False
 
 
 
 
-server_class = BaseHTTPServer.HTTPServer
+server_class = http.server.HTTPServer
 httpd = server_class((HOSTNAME, LISTEN_PORT), OAuthReturnHandler)
 
 browser_opened = False
@@ -138,8 +138,8 @@ try:
             webbrowser.open("http://%s:%s" % (HOSTNAME, LISTEN_PORT))
             browser_opened = True
         httpd.handle_request()
-except Exception, e:
-    raise e
+except Exception as e:
     keepServing = False
+    raise e
 finally:
     httpd.server_close()
